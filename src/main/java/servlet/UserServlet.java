@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dao.UserDAO;
-import daoImpl.UseDAOImpl;
+import daoImpl.UserDAOImpl;
 import entity.Category;
 import entity.User;
 import jakarta.servlet.ServletException;
@@ -51,7 +51,7 @@ public class UserServlet extends HttpServlet {
 	public void init() throws ServletException {
 		super.init();
 		managerFactoryUtils = new ManagerFactoryUtils();
-		userDAO = new UseDAOImpl(managerFactoryUtils.getEntityManager());
+		userDAO = new UserDAOImpl(managerFactoryUtils.getEntityManager());
 	}
 
 	public UserServlet() {

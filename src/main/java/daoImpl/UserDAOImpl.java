@@ -2,14 +2,16 @@ package daoImpl;
 
 import java.util.List;
 
+import dao.OrderDAO;
 import dao.UserDAO;
-import entites.User;
+import entity.Order;
+import entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 
 public class UserDAOImpl implements UserDAO {
 	private EntityManager entityManager;
-
+	private OrderDAO orderDAO ;
 	public UserDAOImpl(EntityManager e ) {
 		this.entityManager = e;
 	}
@@ -102,32 +104,60 @@ public class UserDAOImpl implements UserDAO {
 	}
 	@Override
 	public boolean deleteUser(int id) {
-		// TODO Auto-generated method stub
-		try {
-			entityManager.getTransaction().begin();
+		
 			User user = entityManager.find(User.class, id);
-			entityManager.remove(user);
-			entityManager.getTransaction().commit();
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
+			if (user == null) {
+				return false;
+			}
+			try {
+                entityManager.getTransaction().begin();
+            	OrderDAO orderDAO = new OrderDAOImpl(entityManager);
+            	List<Order> orders = orderDAO.getOrderByUserId(id);
+				for (Order order : orders) {
+					order.setUser(null);
+					entityManager.merge(order);
+				}
+                entityManager.remove(user);
+                entityManager.getTransaction().commit();
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+                return false;
+            }
+			
+			
+		    
+	}	
+			
+	
 	@Override
 	public boolean checkExitMail(String email) {
 	    try {
 	        User user = (User) entityManager.createQuery("FROM User WHERE email = :email", User.class)
 	                                        .setParameter("email", email)
 	                                        .getSingleResult();
-	        return user != null; // Nếu user không null, email tồn tại
-	    } catch (NoResultException e) {
-	        // Nếu không có kết quả, email không tồn tại
-	        return false;
-	    } catch (Exception e) {
+	  
+			if (user != null) {
+				return true;
+			}
+			
+	    }  catch (Exception e) {
 	        e.printStackTrace();
-	        return false;
 	    }
+	    return false ;
+	}
+	@Override
+	public List<User> searchUser(String search) {
+		try {
+			return entityManager.createQuery("FROM User WHERE username LIKE :search OR email LIKE :search or phone LIKE :search or role LIKE :search or shippingAddress LIKE :search ")
+					.setParameter("search", "%" + search + "%" ).getResultList();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

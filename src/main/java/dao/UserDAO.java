@@ -1,8 +1,9 @@
 package dao;
+//import java.util.List;
 
 import java.util.List;
 
-import entites.User;
+import entity.User;
 
 public interface UserDAO {
 	public User getUserById(int id);
@@ -15,4 +16,5 @@ public interface UserDAO {
 	public boolean updateUser(User user);
 	public boolean deleteUser(int id);
 	public boolean checkExitMail(String email);
+	public List<User> searchUser(String search);
 }

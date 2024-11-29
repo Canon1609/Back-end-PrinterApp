@@ -17,7 +17,7 @@ import dao.UserDAO;
 import daoImpl.OrderDAOImpl;
 import daoImpl.OrderItemDAOImpl;
 import daoImpl.ProductDAOImpl;
-import daoImpl.UseDAOImpl;
+import daoImpl.UserDAOImpl;
 import entity.Order;
 import entity.OrderItem;
 import entity.Product;
@@ -60,7 +60,7 @@ public class CheckoutServletr extends HttpServlet {
 		managerFactoryUtils = new ManagerFactoryUtils();
 		orderDAO = new OrderDAOImpl(managerFactoryUtils.getEntityManager());
 		orderItemDAO = new OrderItemDAOImpl(managerFactoryUtils.getEntityManager());
-		userDao = new UseDAOImpl(managerFactoryUtils.getEntityManager());
+		userDao = new UserDAOImpl(managerFactoryUtils.getEntityManager());
 		productDAO = new ProductDAOImpl(managerFactoryUtils.getEntityManager());
 	}
 
