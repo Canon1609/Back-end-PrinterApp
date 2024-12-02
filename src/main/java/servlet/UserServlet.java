@@ -1,4 +1,4 @@
-package servlet;
+	package servlet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -92,8 +92,23 @@ public class UserServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_OK);
                     jsonObject.addProperty("message", "Tìm thấy " + users.size() + " user");
                     out.print(gson.toJson(users));
-			}
-			} else {
+                }
+			} 
+			else if(pathInfo.equals("/profile")) {
+                String userName = request.getParameter("UserName");
+                User user = userDAO.getUserByUsername(userName);
+                if(user == null) {
+                    jsonObject.addProperty("message", "Không tìm thấy user!");
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.print(gson.toJson(jsonObject));
+                } else {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(gson.toJson(user));
+                }
+            }
+		
+			
+			else {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 		} catch (Exception e) {

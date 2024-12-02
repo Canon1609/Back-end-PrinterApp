@@ -4,27 +4,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fatboyindustrial.gsonjavatime.Converters;
@@ -35,27 +26,28 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dao.CategoryDAO;
-import dao.OrderDAO;
 import dao.OrderItemDAO;
 import dao.ProductDAO;
 import daoImpl.CategoryDAOImpl;
-import daoImpl.OrderDAOImpl;
 import daoImpl.OrderItemDAOImpl;
 import daoImpl.ProductDAOImpl;
 import entity.Category;
 import entity.OrderItem;
 import entity.Product;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import utils.ManagerFactoryUtils;
 
 /**
  * Servlet implementation class ProductServlet
  */
 @WebServlet(urlPatterns = { "/api/v1/products", "/api/v1/products/*" })
+@MultipartConfig
 public class ProductServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private ManagerFactoryUtils managerFactoryUtils;
@@ -109,9 +101,6 @@ public class ProductServlet extends HttpServlet {
 				} else {
 					jsonObject.addProperty("message", "Products found");
 					jsonObject.addProperty("total", products.size());
-					// get category name by id of each product in list products then add to json
-					// object
-
 					// dùng ObjectMapper để chuyển đổi object java thành JSON
 					String json = objectMapper.writeValueAsString(products);
 					// dùng gson để chuyển đổi json thành JsonObject
@@ -201,42 +190,7 @@ public class ProductServlet extends HttpServlet {
 //            }
 //        }
 //    }
-	 private String uploadToSirv(String filePath) throws IOException, InterruptedException {
-	        // API Endpoint của Sirv
-	        String uploadUrl = "https://api.sirv.com/v2/files/upload";
 
-	        // Token Sirv (Thay bằng token thật)
-	        String sirvToken = getBearerToken();
-
-	        // Tạo HTTP client và gửi request
-	        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-	            HttpPost uploadRequest = new HttpPost(uploadUrl);
-
-	            // Tạo form-data
-	            File file = new File(filePath);
-	            HttpEntity entity = MultipartEntityBuilder.create()
-	                    .addBinaryBody("file", file, ContentType.APPLICATION_OCTET_STREAM, file.getName())
-	                    .build();
-
-	            // Cấu hình header
-	            uploadRequest.setEntity(entity);
-	            uploadRequest.setHeader("Authorization", "Bearer " + sirvToken);
-
-	            // Gửi request và nhận phản hồi
-	            try (CloseableHttpResponse response = httpClient.execute(uploadRequest)) {
-	                BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-	                StringBuilder jsonResponse = new StringBuilder();
-	                String line;
-	                while ((line = reader.readLine()) != null) {
-	                    jsonResponse.append(line);
-	                }
-
-	                // Trích xuất URL từ JSON phản hồi
-	                JsonObject responseJson = JsonParser.parseString(jsonResponse.toString()).getAsJsonObject();
-	                return responseJson.get("fileUrl").getAsString();
-	            }
-	        }
-	    }
 	    private File saveBase64ToFile(String base64Data) throws IOException {
 	        byte[] decodedBytes = Base64.getDecoder().decode(base64Data);
 	        File tempFile = File.createTempFile("temp-image", ".png");
@@ -254,65 +208,50 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        setCorsHeaders(response);
-
-        JsonObject jsonResponse = new JsonObject();
+    	response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+		response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+		response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+		response.setHeader("Access-Control-Allow-Credentials", "true");
+		String pathInfo = request.getPathInfo();
+        JsonObject jsonObject = new JsonObject();
         PrintWriter out = response.getWriter();
+		if (pathInfo == null || pathInfo.equals("/")) {
+			try {
+				// Lấy dữ liệu từ request
+				
+//				Part part = request.getPart("file");
+//				String fileName = Paths.get(part.getSubmittedFileName()).getFileName().toString();
+				
+				String name = request.getParameter("name");
+				String description = request.getParameter("description");
+				String price = request.getParameter("price");
+				String categoryId = request.getParameter("categoryId");
+				String inStock = request.getParameter("inStock");
+				String ram = request.getParameter("ram");
+				String sizePage = request.getParameter("sizePage");
+			
+				System.out.println("name: " + name);
+				
+				
+			} catch (Exception e) {
+				// TODO: handle exceptions
+				e.printStackTrace();
+				jsonObject.addProperty("message", "Invalid request");
+			}
+			finally {
+				out.print(jsonObject);
+				out.flush();
+				out.close();
+			}
+		}
+		
+		
+		
 
-        try (BufferedReader reader = request.getReader()) {
-            // Read JSON payload
-            StringBuilder jsonBody = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonBody.append(line);
-            }
-
-            // Parse JSON
-            JsonObject jsonObject = JsonParser.parseString(jsonBody.toString()).getAsJsonObject();
-            String name = jsonObject.get("name").getAsString();
-            String description = jsonObject.get("description").getAsString();
-            String base64Data = cleanBase64String(jsonObject.get("img").getAsString());
-            System.out.println("base64Data: " + base64Data);
-            // Save Base64 image to temp file
-            File tempFile = saveBase64ToFile(base64Data);
-
-            // Upload to Sirv
-            String imageUrl = uploadToSirv(tempFile.getAbsolutePath());
-            System.out.println("imageUrl: " + imageUrl);
-
-            // Chuẩn bị phản hồi thành công
-            jsonResponse.addProperty("message", "Thêm sản phẩm thành công");
-            jsonResponse.addProperty("imageUrl", imageUrl);
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            // Save Product to Database
-//            Product product = new Product();
-//            product.setName(name);
-//            product.setDescription(description);
-//            product.setImageUrl(imageUrl);
-//
-//            if (productDAO.addProduct(product)) {
-//                jsonResponse.addProperty("message", "Product added successfully");
-//                jsonResponse.addProperty("imageUrl", imageUrl);
-//                response.setStatus(HttpServletResponse.SC_CREATED);
-//            } else {
-//                throw new Exception("Failed to add product to database");
-//            }
-
-        } catch (IllegalArgumentException e) {
-            jsonResponse.addProperty("error", "Invalid Base64 data");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            jsonResponse.addProperty("error", "An error occurred: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        } finally {
-            out.print(jsonResponse.toString());
-            out.flush();
-            out.close();
-        }
     }
+
 //			throws ServletException, IOException {
 //		// TODO Auto-generated method stub
 //		response.setContentType("application/json");
@@ -360,7 +299,7 @@ public class ProductServlet extends HttpServlet {
 //		}
 //	
 //		// đọc dữ liêu từ request gửi lên từ client
-//
+////
 //		try {
 //			if (pathInfo == null || pathInfo.equals("/add")) {
 //			String name = jsonObject1.get("name").getAsString();

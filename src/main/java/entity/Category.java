@@ -22,7 +22,7 @@ public class Category {
 	private int id;
 	@Column(name = "CategoryName" , columnDefinition = "nvarchar(255)")
 	private String name;
-	@Column(name = "Description" , columnDefinition = "nvarchar(255)")
+	@Column(name = "Description" , columnDefinition = "nvarchar(3000)")
 	private String description;
 	@Column(name = "ImgUri" , columnDefinition = "nvarchar(255)")
 	private String imguri;

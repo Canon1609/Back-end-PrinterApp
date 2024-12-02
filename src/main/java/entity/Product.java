@@ -18,14 +18,37 @@ public class Product {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "ProductId")
 	private int id;
-
+	
 	@Column(name = "ProductName", columnDefinition = "nvarchar(255)")
 	private String name;
+	
+	@Column(name = "Brand", columnDefinition = "nvarchar(255)")
+	private String brand;
 
+	public Product(int id, String name, String brand, double price, String description, String img, String sizePage,
+			int ram, int inStock, Category category) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.brand = brand;
+		this.price = price;
+		this.description = description;
+		this.img = img;
+		this.sizePage = sizePage;
+		this.ram = ram;
+		this.inStock = inStock;
+		this.category = category;
+	}
+	public String getBrand() {
+		return brand;
+	}
+	public void setBrand(String brand) {
+		this.brand = brand;
+	}
 	@Column(name = "Price", columnDefinition = "float")
 	private double price;
 
-	@Column(name = "Description", columnDefinition = "nvarchar(255)")
+	@Column(name = "Description", columnDefinition = "nvarchar(2000)")
 	private String description;
 
 	@Column(name = "Img", columnDefinition = "nvarchar(255)")
